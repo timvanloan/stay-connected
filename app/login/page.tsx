@@ -1,0 +1,103 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo") ?? "/pair";
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (signInError) {
+      setError(signInError.message);
+      return;
+    }
+
+    router.push(redirectTo);
+    router.refresh();
+  }
+
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-sm">
+        <h1 className="text-3xl font-serif text-[#2d2a26] mb-2">Welcome back</h1>
+        <p className="text-[#6b6560] mb-8">Sign in to stay connected.</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-[#2d2a26] mb-1"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-[#2d2a26] mb-1"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
+              placeholder="••••••••"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-[#F87171] bg-[#F87171]/10 px-3 py-2 rounded-lg">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? "Signing in..." : "Log In"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-[#6b6560] text-sm">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-[#A78BFA] hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </main>
+  );
+}
