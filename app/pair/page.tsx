@@ -25,11 +25,13 @@ export default function PairPage() {
         return;
       }
 
+      const userId = user.id;
+
       async function loadProfile() {
         const { data: profile, error: fetchError } = await supabase
           .from("profiles")
           .select("invite_code, partner_id")
-          .eq("id", user.id)
+          .eq("id", userId)
           .single();
 
         if (profile) {
@@ -47,7 +49,7 @@ export default function PairPage() {
           const { data: retried } = await supabase
             .from("profiles")
             .select("invite_code, partner_id")
-            .eq("id", user.id)
+            .eq("id", userId)
             .single();
           if (retried) {
             setInviteCode(retried.invite_code);
@@ -61,7 +63,7 @@ export default function PairPage() {
         const code = generateInviteCode();
         const { error: insertError } = await supabase
           .from("profiles")
-          .insert({ id: user.id, invite_code: code });
+          .insert({ id: userId, invite_code: code });
 
         if (!insertError) {
           setInviteCode(code);
@@ -72,7 +74,7 @@ export default function PairPage() {
           const { data: refetched } = await supabase
             .from("profiles")
             .select("invite_code, partner_id")
-            .eq("id", user.id)
+            .eq("id", userId)
             .single();
           if (refetched) {
             setInviteCode(refetched.invite_code);
