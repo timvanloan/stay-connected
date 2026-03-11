@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FEELING_COLORS,
   FEELINGS_MAP,
+  FEELING_EMOJIS,
   type PrimaryFeeling,
 } from "@/lib/constants/feelings";
 
@@ -43,25 +44,45 @@ export function PulseWheel({
             const y2 = 100 + 90 * Math.sin(endAngle);
             const pathD = `M 100 100 L ${x1} ${y1} A 90 90 0 ${largeArc} 1 ${x2} ${y2} Z`;
 
+            const midAngle = (startAngle + endAngle) / 2;
+            const labelRadius = 55;
+            const labelX = 100 + labelRadius * Math.cos(midAngle);
+            const labelY = 100 + labelRadius * Math.sin(midAngle);
+
             const isSelected = selectedPrimary === feeling;
             const isHovered = hoveredPrimary === feeling;
 
             return (
-              <motion.path
-                key={feeling}
-                d={pathD}
-                fill={FEELING_COLORS[feeling]}
-                stroke={isSelected || isHovered ? "#2d2a26" : "transparent"}
-                strokeWidth={isSelected ? 3 : 2}
-                className="cursor-pointer transition-opacity"
-                initial={{ opacity: 0.8 }}
-                whileHover={{ opacity: 1, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onSelect(feeling)}
-                onMouseEnter={() => setHoveredPrimary(feeling)}
-                onMouseLeave={() => setHoveredPrimary(null)}
-                style={{ transformOrigin: "100px 100px" }}
-              />
+              <g key={feeling}>
+                <motion.path
+                  d={pathD}
+                  fill={FEELING_COLORS[feeling]}
+                  stroke={isSelected || isHovered ? "#2d2a26" : "transparent"}
+                  strokeWidth={isSelected ? 3 : 2}
+                  className="cursor-pointer transition-opacity"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onSelect(feeling)}
+                  onMouseEnter={() => setHoveredPrimary(feeling)}
+                  onMouseLeave={() => setHoveredPrimary(null)}
+                  style={{ transformOrigin: "100px 100px" }}
+                />
+                <text
+                  x={labelX}
+                  y={labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="pointer-events-none select-none"
+                  style={{
+                    fill: feeling === "Happy" ? "#2d2a26" : "#fff",
+                    fontSize: "11px",
+                    fontWeight: 500,
+                  }}
+                >
+                  {feeling}
+                </text>
+              </g>
             );
           })}
           {/* Center circle */}
@@ -128,7 +149,7 @@ export function PulseWheel({
                     onClick={() =>
                       onSelect(primary, isSelected ? undefined : secondary)
                     }
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                       isSelected
                         ? "ring-2 ring-[#2d2a26] ring-offset-2"
                         : "hover:opacity-90"
@@ -138,6 +159,7 @@ export function PulseWheel({
                       color: primary === "Happy" ? "#2d2a26" : "#fff",
                     }}
                   >
+                    <span>{FEELING_EMOJIS[secondary] ?? ""}</span>
                     {secondary}
                   </button>
                 );

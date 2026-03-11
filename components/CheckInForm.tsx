@@ -119,7 +119,7 @@ export function CheckInForm({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note for your partner..."
-            rows={2}
+            rows={4}
             className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA] resize-none"
           />
         </div>

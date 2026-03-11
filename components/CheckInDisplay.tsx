@@ -1,6 +1,6 @@
 "use client";
 
-import { FEELING_COLORS } from "@/lib/constants/feelings";
+import { FEELING_COLORS, FEELING_EMOJIS } from "@/lib/constants/feelings";
 
 type CheckIn = {
   id: string;
@@ -21,9 +21,11 @@ type CheckInDisplayProps = {
 function CheckInCard({
   checkIn,
   label,
+  isPartner = false,
 }: {
   checkIn: CheckIn;
   label: string;
+  isPartner?: boolean;
 }) {
   const color =
     FEELING_COLORS[checkIn.primary_feeling as keyof typeof FEELING_COLORS] ??
@@ -32,15 +34,24 @@ function CheckInCard({
 
   return (
     <div
-      className="rounded-xl border border-[#e5e2de] bg-white p-4"
+      className={`rounded-xl border border-[#e5e2de] bg-white p-4 ${
+        isPartner ? "min-h-[8rem]" : ""
+      }`}
       style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
       <p className="text-xs font-medium text-[#6b6560] uppercase tracking-wide mb-1">
         {label}
       </p>
-      <p className="font-medium text-[#2d2a26]">{feelingLabel}</p>
+      <p className="font-medium text-[#2d2a26] flex items-center gap-1.5">
+        {FEELING_EMOJIS[feelingLabel] && (
+          <span>{FEELING_EMOJIS[feelingLabel]}</span>
+        )}
+        {feelingLabel}
+      </p>
       {checkIn.note && (
-        <p className="text-sm text-[#6b6560] mt-2 italic">&ldquo;{checkIn.note}&rdquo;</p>
+        <p className="text-sm text-[#6b6560] mt-2 italic">
+          &ldquo;{checkIn.note}&rdquo;
+        </p>
       )}
     </div>
   );
@@ -72,7 +83,7 @@ export function CheckInDisplay({
         )}
         {hasPartner ? (
           partnerCheckIn ? (
-            <CheckInCard checkIn={partnerCheckIn} label="Partner" />
+            <CheckInCard checkIn={partnerCheckIn} label="Partner" isPartner />
           ) : (
             <div className="rounded-xl border border-[#e5e2de] bg-[#f5f3f0] p-4 flex items-center justify-center min-h-[80px]">
               <p className="text-sm text-[#6b6560]">Partner hasn&apos;t checked in yet</p>
