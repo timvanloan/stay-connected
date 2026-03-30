@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { PulseWheel } from "./PulseWheel";
+import { EmotionCheckInPanel } from "./emotion-check-in/EmotionCheckInPanel";
 import {
   normalizePrimaryFeeling,
   type PrimaryFeeling,
@@ -18,8 +19,11 @@ type ExistingCheckIn = {
 
 export function CheckInForm({
   existingCheckIn,
+  partnerName = "Partner",
 }: {
   existingCheckIn?: ExistingCheckIn;
+  /** Shown on the share button, e.g. first name */
+  partnerName?: string;
 }) {
   const [primary, setPrimary] = useState<PrimaryFeeling | null>(
     existingCheckIn?.primary_feeling
@@ -98,74 +102,93 @@ export function CheckInForm({
 
   if (submitted && !existingCheckIn) {
     return (
-      <div className="rounded-xl border border-[#e5e2de] bg-white p-6 text-center">
-        <p className="text-[#2d2a26] font-medium">Check-in saved</p>
-        <p className="text-[#6b6560] text-sm mt-1">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-[2rem] border border-stone-200/60 bg-white/80 p-8 text-center shadow-hubGlow"
+      >
+        <p className="font-serif text-lg text-[#2d2a26]">Check-in saved</p>
+        <p className="font-inter mt-2 text-sm text-[#6b6560]">
           Your partner can see how you&apos;re feeling.
         </p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-xl border border-[#e5e2de] bg-white p-6">
-        <h2 className="text-xl font-serif text-[#2d2a26] mb-4">
-          How are you feeling?
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="rounded-[2rem] border border-stone-200/40 bg-white/60 p-6 sm:p-10 shadow-[0_4px_40px_-12px_rgba(0,0,0,0.08)] backdrop-blur-sm"
+      >
+        <h2 className="font-serif text-2xl sm:text-[1.65rem] leading-snug text-[#2d2a26] text-center mb-8">
+          How are you feeling today?
         </h2>
-        <PulseWheel
+
+        <EmotionCheckInPanel
           onSelect={handleSelect}
           selectedPrimary={primary}
           selectedSecondary={secondary}
         />
-        <div className="mt-6">
-          <label
-            htmlFor="note"
-            className="block text-sm font-medium text-[#2d2a26] mb-1"
-          >
-            A bit more about how I&apos;m feeling (optional)
-          </label>
-          <textarea
-            id="note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Add a note for your partner..."
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA] resize-none"
-          />
+
+        <div className="mt-10 space-y-6">
+          <div>
+            <label
+              htmlFor="note"
+              className="block font-inter text-sm font-medium text-[#5c564e] mb-2"
+            >
+              A bit more about how I&apos;m feeling (optional)
+            </label>
+            <textarea
+              id="note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add a note for your partner..."
+              rows={4}
+              className="font-inter w-full rounded-[1.25rem] border border-stone-200/80 bg-[#FDFBF7]/80 px-4 py-3.5 text-[#2d2a26] placeholder:text-stone-400 focus:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-200/40 resize-none shadow-inner"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="partnerAppreciation"
+              className="block font-inter text-sm font-medium text-[#5c564e] mb-2"
+            >
+              What I&apos;m appreciating / crushing on about my partner today
+              (optional)
+            </label>
+            <textarea
+              id="partnerAppreciation"
+              value={partnerAppreciation}
+              onChange={(e) => setPartnerAppreciation(e.target.value)}
+              placeholder="Share something you love about them..."
+              rows={4}
+              className="font-inter w-full rounded-[1.25rem] border border-stone-200/80 bg-[#FDFBF7]/80 px-4 py-3.5 text-[#2d2a26] placeholder:text-stone-400 focus:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-200/40 resize-none shadow-inner"
+            />
+          </div>
         </div>
-        <div className="mt-4">
-          <label
-            htmlFor="partnerAppreciation"
-            className="block text-sm font-medium text-[#2d2a26] mb-1"
-          >
-            What I&apos;m appreciating / crushing on about my partner today
-            (optional)
-          </label>
-          <textarea
-            id="partnerAppreciation"
-            value={partnerAppreciation}
-            onChange={(e) => setPartnerAppreciation(e.target.value)}
-            placeholder="Share something you love about them..."
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA] resize-none"
-          />
-        </div>
-      </div>
+      </motion.div>
 
       {error && (
-        <p className="text-sm text-[#F87171] bg-[#F87171]/10 px-3 py-2 rounded-lg">
+        <p className="font-inter text-sm text-red-600/90 bg-red-50/80 px-4 py-3 rounded-2xl border border-red-100">
           {error}
         </p>
       )}
 
-      <button
+      <motion.button
         type="submit"
         disabled={loading || !primary}
-        className="w-full py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        whileHover={{ scale: primary ? 1.01 : 1 }}
+        whileTap={{ scale: primary ? 0.99 : 1 }}
+        className="font-inter w-full rounded-[1.25rem] border border-amber-900/15 bg-gradient-to-b from-[#FAF0DC] to-[#F3E4C4] py-4 text-base font-semibold text-[#4a3f2e] shadow-[0_8px_32px_-8px_rgba(212,175,100,0.45)] transition-all disabled:cursor-not-allowed disabled:opacity-50 hover:from-[#FCF4E4] hover:to-[#F5E8D0]"
       >
-        {loading ? "Saving..." : existingCheckIn ? "Update check-in" : "Save check-in"}
-      </button>
+        {loading
+          ? "Sharing..."
+          : existingCheckIn
+            ? `Update check-in · Share with ${partnerName}`
+            : `Share with ${partnerName}`}
+      </motion.button>
     </form>
   );
 }

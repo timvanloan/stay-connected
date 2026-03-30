@@ -1,21 +1,24 @@
+/** Primary emotion colors (UI + check-in cards) */
 export const FEELING_COLORS = {
-  Happy: "#FDE047",
-  Sad: "#60A5FA",
-  Angry: "#F87171",
-  Fear: "#A78BFA",
+  Happy: "#F4D35E",
+  Sad: "#70B6F0",
+  Angry: "#F28D8D",
+  Fear: "#9F83EA",
 } as const;
+
+/** Gradient end stops for the emotion grid (subtle depth) */
+export const FEELING_GRADIENT_END: Record<keyof typeof FEELING_COLORS, string> =
+  {
+    Happy: "#E8C44A",
+    Sad: "#5AA8E8",
+    Angry: "#E87A7A",
+    Fear: "#8B6FD4",
+  };
 
 export type PrimaryFeeling = keyof typeof FEELING_COLORS;
 
 export const FEELINGS_MAP: Record<PrimaryFeeling, string[]> = {
-  Happy: [
-    "Content",
-    "Hopeful",
-    "Loved",
-    "Cherished/appreciated",
-    "Grateful",
-    "Excited",
-  ],
+  Happy: ["Content", "Hopeful", "Loved", "Grateful", "Adored", "Inspired"],
   Sad: [
     "Disappointed",
     "Hurt",
@@ -58,9 +61,9 @@ export const FEELING_EMOJIS: Record<string, string> = {
   Content: "😌",
   Hopeful: "🌟",
   Loved: "🥰",
-  "Cherished/appreciated": "🤗",
   Grateful: "🙏",
-  Excited: "🤩",
+  Adored: "💖",
+  Inspired: "🤩",
   Disappointed: "😞",
   Hurt: "💔",
   Grief: "😢",

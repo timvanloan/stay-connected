@@ -20,6 +20,8 @@ type DashboardContentProps = {
   partnerCheckIn: CheckIn | null;
   partnerPreviousPulses: PartnerPulseHistory[];
   hasPartner: boolean;
+  /** First name or nickname for the share button; defaults to "Partner" */
+  partnerName?: string;
 };
 
 export function DashboardContent({
@@ -27,10 +29,11 @@ export function DashboardContent({
   partnerCheckIn,
   partnerPreviousPulses,
   hasPartner,
+  partnerName = "Partner",
 }: DashboardContentProps) {
   return (
     <div className="space-y-8">
-      <CheckInForm existingCheckIn={ownCheckIn} />
+      <CheckInForm existingCheckIn={ownCheckIn} partnerName={partnerName} />
       <CheckInDisplay
         ownCheckIn={ownCheckIn}
         partnerCheckIn={partnerCheckIn}

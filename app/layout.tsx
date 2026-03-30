@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Outfit } from "next/font/google";
+import { Inter, Playfair_Display, Outfit } from "next/font/google";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -14,6 +14,12 @@ const outfit = Outfit({
   display: "swap",
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Stay Connected",
   description: "A private app for couples to stay emotionally connected",
@@ -25,8 +31,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${outfit.variable}`}>
-      <body className="font-sans antialiased min-h-screen bg-[#faf9f7] text-[#2d2a26]">
+    <html
+      lang="en"
+      className={`${playfair.variable} ${outfit.variable} ${inter.variable}`}
+    >
+      <body className="font-sans antialiased min-h-screen bg-[#FDFBF7] text-[#2d2a26]">
         {children}
       </body>
     </html>
