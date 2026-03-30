@@ -12,6 +12,13 @@ import {
 
 const PRIMARY_ORDER: PrimaryFeeling[] = ["Happy", "Sad", "Angry", "Fear"];
 
+/** Outer radius of the pie (viewBox is 200×200; center 100,100) */
+const OUTER_R = 100;
+/** Inner white hub — keep smaller than label ring so quadrant names stay readable */
+const HUB_R = 36;
+/** Place primary labels in the middle of the colored band */
+const LABEL_R = 66;
+
 /** SVG user-space offset for hub toward selected quadrant */
 const HUB_NUDGE: Record<PrimaryFeeling, { x: number; y: number }> = {
   Happy: { x: 8, y: -8 },
@@ -44,7 +51,7 @@ export function EmotionCheckInPanel({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-72 h-72 sm:w-80 sm:h-80 mx-auto"
+        className="relative w-80 h-80 sm:w-[22rem] sm:h-[22rem] mx-auto"
       >
         <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-sm">
           <defs>
@@ -70,17 +77,16 @@ export function EmotionCheckInPanel({
           {PRIMARY_ORDER.map((feeling, i) => {
             const startAngle = (i * 90 - 90) * (Math.PI / 180);
             const endAngle = ((i + 1) * 90 - 90) * (Math.PI / 180);
-            const x1 = 100 + 90 * Math.cos(startAngle);
-            const y1 = 100 + 90 * Math.sin(startAngle);
-            const x2 = 100 + 90 * Math.cos(endAngle);
-            const y2 = 100 + 90 * Math.sin(endAngle);
+            const x1 = 100 + OUTER_R * Math.cos(startAngle);
+            const y1 = 100 + OUTER_R * Math.sin(startAngle);
+            const x2 = 100 + OUTER_R * Math.cos(endAngle);
+            const y2 = 100 + OUTER_R * Math.sin(endAngle);
             const largeArc = 0;
-            const pathD = `M 100 100 L ${x1} ${y1} A 90 90 0 ${largeArc} 1 ${x2} ${y2} Z`;
+            const pathD = `M 100 100 L ${x1} ${y1} A ${OUTER_R} ${OUTER_R} 0 ${largeArc} 1 ${x2} ${y2} Z`;
 
             const midAngle = (startAngle + endAngle) / 2;
-            const labelRadius = 52;
-            const labelX = 100 + labelRadius * Math.cos(midAngle);
-            const labelY = 100 + labelRadius * Math.sin(midAngle);
+            const labelX = 100 + LABEL_R * Math.cos(midAngle);
+            const labelY = 100 + LABEL_R * Math.sin(midAngle);
 
             const isSelected = selectedPrimary === feeling;
             const isHovered = hoveredPrimary === feeling;
@@ -116,7 +122,7 @@ export function EmotionCheckInPanel({
                   className="pointer-events-none select-none"
                   style={{
                     fill: feeling === "Happy" ? "#3d3420" : "#fff",
-                    fontSize: "11px",
+                    fontSize: "12px",
                     fontWeight: 600,
                     fontFamily: "var(--font-inter), system-ui, sans-serif",
                     textShadow:
@@ -145,7 +151,7 @@ export function EmotionCheckInPanel({
             <circle
               cx="100"
               cy="100"
-              r="46"
+              r={HUB_R}
               fill="#ffffff"
               stroke="rgba(255,255,255,0.9)"
               strokeWidth="3"
@@ -162,17 +168,12 @@ export function EmotionCheckInPanel({
               className="pointer-events-none select-none"
               style={{
                 fill: "#4a4540",
-                fontSize: "11px",
+                fontSize: "9.5px",
                 fontWeight: 600,
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
               }}
             >
-              <tspan x="100" dy="-5">
-                My Today
-              </tspan>
-              <tspan x="100" dy="14">
-                is...
-              </tspan>
+              I&apos;m feeling...
             </text>
           </motion.g>
         </svg>
