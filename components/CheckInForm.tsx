@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PulseWheel } from "./PulseWheel";
-import type { PrimaryFeeling } from "@/lib/constants/feelings";
+import {
+  normalizePrimaryFeeling,
+  type PrimaryFeeling,
+} from "@/lib/constants/feelings";
 
 type ExistingCheckIn = {
   primary_feeling: string;
   secondary_feeling: string | null;
   note: string | null;
+  partner_appreciation: string | null;
 } | null;
 
 export function CheckInForm({
@@ -18,12 +22,17 @@ export function CheckInForm({
   existingCheckIn?: ExistingCheckIn;
 }) {
   const [primary, setPrimary] = useState<PrimaryFeeling | null>(
-    (existingCheckIn?.primary_feeling as PrimaryFeeling) ?? null
+    existingCheckIn?.primary_feeling
+      ? normalizePrimaryFeeling(existingCheckIn.primary_feeling)
+      : null
   );
   const [secondary, setSecondary] = useState<string | null>(
     existingCheckIn?.secondary_feeling ?? null
   );
   const [note, setNote] = useState(existingCheckIn?.note ?? "");
+  const [partnerAppreciation, setPartnerAppreciation] = useState(
+    existingCheckIn?.partner_appreciation ?? ""
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -31,9 +40,10 @@ export function CheckInForm({
 
   useEffect(() => {
     if (existingCheckIn) {
-      setPrimary(existingCheckIn.primary_feeling as PrimaryFeeling);
+      setPrimary(normalizePrimaryFeeling(existingCheckIn.primary_feeling));
       setSecondary(existingCheckIn.secondary_feeling);
       setNote(existingCheckIn.note ?? "");
+      setPartnerAppreciation(existingCheckIn.partner_appreciation ?? "");
     }
   }, [existingCheckIn]);
 
@@ -67,6 +77,7 @@ export function CheckInForm({
         primary_feeling: primary,
         secondary_feeling: secondary || null,
         note: note.trim() || null,
+        partner_appreciation: partnerAppreciation.trim() || null,
         updated_at: new Date().toISOString(),
       },
       {
@@ -112,13 +123,30 @@ export function CheckInForm({
             htmlFor="note"
             className="block text-sm font-medium text-[#2d2a26] mb-1"
           >
-            Note (optional)
+            A bit more about how I&apos;m feeling (optional)
           </label>
           <textarea
             id="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note for your partner..."
+            rows={4}
+            className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA] resize-none"
+          />
+        </div>
+        <div className="mt-4">
+          <label
+            htmlFor="partnerAppreciation"
+            className="block text-sm font-medium text-[#2d2a26] mb-1"
+          >
+            What I&apos;m appreciating / crushing on about my partner today
+            (optional)
+          </label>
+          <textarea
+            id="partnerAppreciation"
+            value={partnerAppreciation}
+            onChange={(e) => setPartnerAppreciation(e.target.value)}
+            placeholder="Share something you love about them..."
             rows={4}
             className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA] resize-none"
           />

@@ -1,6 +1,10 @@
 "use client";
 
-import { FEELING_COLORS, FEELING_EMOJIS } from "@/lib/constants/feelings";
+import {
+  FEELING_COLORS,
+  FEELING_EMOJIS,
+  normalizePrimaryFeeling,
+} from "@/lib/constants/feelings";
 
 type CheckIn = {
   id: string;
@@ -8,13 +12,27 @@ type CheckIn = {
   primary_feeling: string;
   secondary_feeling: string | null;
   note: string | null;
+  partner_appreciation: string | null;
   created_at: string;
   is_own?: boolean;
 };
 
+type PartnerPulseHistory = CheckIn & { check_in_date: string };
+
+function formatPulseDate(isoDate: string) {
+  const d = new Date(isoDate + "T12:00:00");
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 type CheckInDisplayProps = {
   ownCheckIn: CheckIn | null;
   partnerCheckIn: CheckIn | null;
+  partnerPreviousPulses: PartnerPulseHistory[];
   hasPartner: boolean;
 };
 
@@ -22,29 +40,38 @@ function CheckInCard({
   checkIn,
   label,
   isPartner = false,
+  dateLabel = false,
 }: {
   checkIn: CheckIn;
   label: string;
   isPartner?: boolean;
+  /** When true, label is a date — no uppercase styling */
+  dateLabel?: boolean;
 }) {
-  const color =
-    FEELING_COLORS[checkIn.primary_feeling as keyof typeof FEELING_COLORS] ??
-    "#6b6560";
+  const appreciationLabel = isPartner
+    ? "Appreciating about you"
+    : "Appreciating about my partner";
+  const primaryKey = normalizePrimaryFeeling(checkIn.primary_feeling);
+  const color = FEELING_COLORS[primaryKey] ?? "#6b6560";
   const feelingLabel = checkIn.secondary_feeling ?? checkIn.primary_feeling;
 
   return (
     <div
       className={`rounded-xl border border-[#e5e2de] bg-white p-4 ${
-        isPartner ? "min-h-[8rem]" : ""
+        isPartner && !dateLabel ? "min-h-[8rem]" : ""
       }`}
       style={{ borderLeftWidth: 4, borderLeftColor: color }}
     >
-      <p className="text-xs font-medium text-[#6b6560] uppercase tracking-wide mb-1">
+      <p
+        className={`text-xs font-medium text-[#6b6560] mb-1 ${
+          dateLabel ? "" : "uppercase tracking-wide"
+        }`}
+      >
         {label}
       </p>
       <p className="font-medium text-[#2d2a26] flex items-center gap-1.5">
-        {FEELING_EMOJIS[feelingLabel] && (
-          <span>{FEELING_EMOJIS[feelingLabel]}</span>
+        {(FEELING_EMOJIS[feelingLabel] ?? FEELING_EMOJIS[primaryKey]) && (
+          <span>{FEELING_EMOJIS[feelingLabel] ?? FEELING_EMOJIS[primaryKey]}</span>
         )}
         {feelingLabel}
       </p>
@@ -53,6 +80,16 @@ function CheckInCard({
           &ldquo;{checkIn.note}&rdquo;
         </p>
       )}
+      {checkIn.partner_appreciation && (
+        <div className="mt-3 pt-3 border-t border-[#e5e2de]">
+          <p className="text-xs font-medium text-[#6b6560] mb-1">
+            {appreciationLabel}
+          </p>
+          <p className="text-sm text-[#2d2a26]">
+            {checkIn.partner_appreciation}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -60,6 +97,7 @@ function CheckInCard({
 export function CheckInDisplay({
   ownCheckIn,
   partnerCheckIn,
+  partnerPreviousPulses,
   hasPartner,
 }: CheckInDisplayProps) {
   const today = new Date().toLocaleDateString("en-US", {
@@ -95,6 +133,29 @@ export function CheckInDisplay({
           </div>
         )}
       </div>
+
+      {hasPartner && partnerPreviousPulses.length > 0 && (
+        <div className="mt-10 pt-8 border-t border-[#e5e2de]">
+          <h2 className="text-lg font-serif text-[#2d2a26] mb-1">
+            Previous Pulses
+          </h2>
+          <p className="text-sm text-[#6b6560] mb-4">
+            Up to 50 of your partner&apos;s past check-ins (newest first).
+          </p>
+          <div className="max-h-[min(70vh,32rem)] overflow-y-auto pr-1 -mr-1 space-y-3 rounded-xl border border-[#e5e2de] bg-[#f5f3f0] p-3">
+            {partnerPreviousPulses.map((pulse) => (
+              <CheckInCard
+                key={pulse.id}
+                checkIn={pulse}
+                label={formatPulseDate(pulse.check_in_date)}
+                isPartner
+                dateLabel
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

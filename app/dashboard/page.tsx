@@ -22,20 +22,46 @@ export default async function DashboardPage() {
 
   const { data: ownCheckIn } = await supabase
     .from("check_ins")
-    .select("id, user_id, primary_feeling, secondary_feeling, note, created_at")
+    .select(
+      "id, user_id, primary_feeling, secondary_feeling, note, partner_appreciation, created_at"
+    )
     .eq("user_id", user.id)
     .eq("check_in_date", today)
     .single();
 
   let partnerCheckIn = null;
+  let partnerPreviousPulses: {
+    id: string;
+    user_id: string;
+    primary_feeling: string;
+    secondary_feeling: string | null;
+    note: string | null;
+    partner_appreciation: string | null;
+    created_at: string;
+    check_in_date: string;
+  }[] = [];
+
   if (profile?.partner_id) {
     const { data } = await supabase
       .from("check_ins")
-      .select("id, user_id, primary_feeling, secondary_feeling, note, created_at")
+      .select(
+        "id, user_id, primary_feeling, secondary_feeling, note, partner_appreciation, created_at, check_in_date"
+      )
       .eq("user_id", profile.partner_id)
       .eq("check_in_date", today)
       .single();
     partnerCheckIn = data;
+
+    const { data: history } = await supabase
+      .from("check_ins")
+      .select(
+        "id, user_id, primary_feeling, secondary_feeling, note, partner_appreciation, created_at, check_in_date"
+      )
+      .eq("user_id", profile.partner_id)
+      .lt("check_in_date", today)
+      .order("check_in_date", { ascending: false })
+      .limit(50);
+    partnerPreviousPulses = history ?? [];
   }
 
   return (
@@ -50,6 +76,7 @@ export default async function DashboardPage() {
         <DashboardContent
           ownCheckIn={ownCheckIn}
           partnerCheckIn={partnerCheckIn}
+          partnerPreviousPulses={partnerPreviousPulses}
           hasPartner={!!profile?.partner_id}
         />
       </div>

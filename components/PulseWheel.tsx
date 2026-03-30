@@ -15,7 +15,7 @@ type PulseWheelProps = {
   selectedSecondary?: string | null;
 };
 
-const PRIMARY_ORDER: PrimaryFeeling[] = ["Happy", "Sad", "Angry", "Afraid"];
+const PRIMARY_ORDER: PrimaryFeeling[] = ["Happy", "Sad", "Angry", "Fear"];
 
 export function PulseWheel({
   onSelect,
@@ -85,24 +85,51 @@ export function PulseWheel({
               </g>
             );
           })}
-          {/* Center circle */}
+          {/* Center hub — solid circle keeps prompt legible */}
           <circle
             cx="100"
             cy="100"
-            r="35"
-            fill="#faf9f7"
+            r="44"
+            fill="#ffffff"
             stroke="#e5e2de"
             strokeWidth="2"
           />
-          <text
-            x="100"
-            y="100"
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="text-sm font-medium fill-[#6b6560]"
-          >
-            {primary ? "Select" : "How do you feel?"}
-          </text>
+          {primary ? (
+            <text
+              x="100"
+              y="100"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              className="pointer-events-none select-none"
+              style={{
+                fill: "#2d2a26",
+                fontSize: "12px",
+                fontWeight: 600,
+              }}
+            >
+              Select
+            </text>
+          ) : (
+            <text
+              x="100"
+              y="100"
+              textAnchor="middle"
+              className="pointer-events-none select-none"
+              style={{
+                fill: "#2d2a26",
+                fontSize: "10px",
+                fontWeight: 600,
+                fontFamily: "system-ui, sans-serif",
+              }}
+            >
+              <tspan x="100" dy="-6">
+                How do you
+              </tspan>
+              <tspan x="100" dy="14">
+                feel?
+              </tspan>
+            </text>
+          )}
         </svg>
       </div>
 
