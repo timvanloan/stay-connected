@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { EmotionCheckInPanel } from "./emotion-check-in/EmotionCheckInPanel";
 import {
   normalizePrimaryFeeling,
+  normalizeSecondaryLabel,
   type PrimaryFeeling,
 } from "@/lib/constants/feelings";
 
@@ -31,7 +32,7 @@ export function CheckInForm({
       : null
   );
   const [secondary, setSecondary] = useState<string | null>(
-    existingCheckIn?.secondary_feeling ?? null
+    normalizeSecondaryLabel(existingCheckIn?.secondary_feeling ?? null)
   );
   const [note, setNote] = useState(existingCheckIn?.note ?? "");
   const [partnerAppreciation, setPartnerAppreciation] = useState(
@@ -45,7 +46,7 @@ export function CheckInForm({
   useEffect(() => {
     if (existingCheckIn) {
       setPrimary(normalizePrimaryFeeling(existingCheckIn.primary_feeling));
-      setSecondary(existingCheckIn.secondary_feeling);
+      setSecondary(normalizeSecondaryLabel(existingCheckIn.secondary_feeling));
       setNote(existingCheckIn.note ?? "");
       setPartnerAppreciation(existingCheckIn.partner_appreciation ?? "");
     }

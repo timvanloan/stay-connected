@@ -39,11 +39,24 @@ export const FEELINGS_MAP: Record<PrimaryFeeling, string[]> = {
     "Insecure",
     "Vulnerable",
     "Nervous",
-    "Worry",
-    "Overwhelm",
+    "Worried",
+    "Overwhelmed",
     "Dread",
   ],
 };
+
+/** Legacy secondary labels → current wording (for stored check-ins) */
+const SECONDARY_LABEL_ALIASES: Record<string, string> = {
+  Worry: "Worried",
+  Overwhelm: "Overwhelmed",
+};
+
+export function normalizeSecondaryLabel(
+  label: string | null | undefined
+): string | null {
+  if (label == null || label === "") return null;
+  return SECONDARY_LABEL_ALIASES[label] ?? label;
+}
 
 /** Maps legacy DB values to current primary keys */
 export function normalizePrimaryFeeling(
@@ -79,6 +92,8 @@ export const FEELING_EMOJIS: Record<string, string> = {
   Insecure: "😰",
   Vulnerable: "🫂",
   Nervous: "😬",
+  Worried: "😟",
+  Overwhelmed: "😵",
   Worry: "😟",
   Overwhelm: "😵",
   Dread: "😨",

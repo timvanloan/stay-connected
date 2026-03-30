@@ -4,6 +4,7 @@ import {
   FEELING_COLORS,
   FEELING_EMOJIS,
   normalizePrimaryFeeling,
+  normalizeSecondaryLabel,
 } from "@/lib/constants/feelings";
 
 type CheckIn = {
@@ -53,7 +54,9 @@ function CheckInCard({
     : "Appreciating about my partner";
   const primaryKey = normalizePrimaryFeeling(checkIn.primary_feeling);
   const color = FEELING_COLORS[primaryKey] ?? "#6b6560";
-  const feelingLabel = checkIn.secondary_feeling ?? checkIn.primary_feeling;
+  const feelingLabel =
+    normalizeSecondaryLabel(checkIn.secondary_feeling) ??
+    checkIn.primary_feeling;
 
   return (
     <div
