@@ -39,16 +39,25 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 npx supabase db push
 ```
 
-Or run the migration manually in the Supabase SQL Editor:
-- Copy the contents of `supabase/migrations/20250217000000_initial_schema.sql`
-- Execute in Supabase Dashboard → SQL Editor
+Or run migrations manually in the Supabase SQL Editor (run **all** files in `supabase/migrations/` in chronological order, or paste each new migration when you pull updates).
+
+### Security (database)
+
+After applying `20260331120000_security_partner_lock_and_rate_limit.sql`:
+
+- **`profiles`:** Authenticated users can no longer `UPDATE` rows directly (so `partner_id` cannot be set from the client). Pairing only happens through the `accept_invite` RPC (runs with elevated privileges).
+- **`accept_invite`:** Rate-limited to **30 attempts per user per rolling hour**; rejects pairing if you or the other person are already linked to someone else.
+
+Keep the **service role** key server-side only; never expose it in the browser or a public repo.
 
 ### 4. Configure Supabase Auth
 
 In Supabase Dashboard → Authentication → URL Configuration:
 
 - **Site URL:** `http://localhost:3000` (or your production URL)
-- **Redirect URLs:** Add `http://localhost:3000/auth/callback`
+- **Redirect URLs:** Add `http://localhost:3000/auth/callback` (used for email confirmation and password reset). For production, add `https://your-domain.com/auth/callback` as well.
+
+Password reset sends users through that callback to `/auth/update-password`; no extra redirect URL is required if the query stays on `/auth/callback`.
 
 ### 5. Run the app
 
@@ -58,7 +67,7 @@ npm run dev
 
 ## Features
 
-- **Auth:** Sign up and log in with email/password
+- **Auth:** Sign up and log in with email/password; forgot-password flow to reset via email
 - **Profile:** Auto-created on signup with a unique 6-digit invite code
 - **Pairing:** Share your code and enter your partner's to link accounts
 - **Protected routes:** `/dashboard` and `/pair` require authentication

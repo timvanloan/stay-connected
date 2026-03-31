@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { EmotionCheckInPanel } from "./emotion-check-in/EmotionCheckInPanel";
+import { getLocalCalendarDate } from "@/lib/calendar-date";
 import {
   normalizePrimaryFeeling,
   normalizeSecondaryLabel,
@@ -78,7 +79,7 @@ export function CheckInForm({
     const { error: upsertError } = await supabase.from("check_ins").upsert(
       {
         user_id: user.id,
-        check_in_date: new Date().toISOString().slice(0, 10),
+        check_in_date: getLocalCalendarDate(),
         primary_feeling: primary,
         secondary_feeling: secondary || null,
         note: note.trim() || null,

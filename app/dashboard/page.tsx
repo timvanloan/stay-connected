@@ -1,8 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardContent } from "@/components/DashboardContent";
+import {
+  getRequestCalendarDate,
+  TIMEZONE_COOKIE,
+} from "@/lib/calendar-date";
 
 export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const headerList = await headers();
+  const tzCookie = cookieStore.get(TIMEZONE_COOKIE)?.value;
+  const tzHeader = headerList.get("x-vercel-ip-timezone");
+  const today = getRequestCalendarDate(
+    tzCookie ? decodeURIComponent(tzCookie) : undefined,
+    tzHeader
+  );
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,8 +31,6 @@ export default async function DashboardPage() {
     .select("partner_id")
     .eq("id", user.id)
     .single();
-
-  const today = new Date().toISOString().slice(0, 10);
 
   const { data: ownCheckIn } = await supabase
     .from("check_ins")

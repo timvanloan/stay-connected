@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Outfit } from "next/font/google";
+import { TimezoneCookie } from "@/components/TimezoneCookie";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -36,6 +37,7 @@ export default function RootLayout({
       className={`${playfair.variable} ${outfit.variable} ${inter.variable}`}
     >
       <body className="font-sans antialiased min-h-screen bg-[#FDFBF7] text-[#2d2a26]">
+        <TimezoneCookie />
         {children}
       </body>
     </html>
