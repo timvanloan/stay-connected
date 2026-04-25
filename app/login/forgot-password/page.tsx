@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { TurnstileGate } from "@/components/auth/TurnstileGate";
+import { buildAuthCaptchaOptions, turnstileSiteKey } from "@/lib/auth-captcha";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const turnstileKey = turnstileSiteKey();
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileKey && !captchaToken) {
+      setError("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
 
     const supabase = createClient();
@@ -22,6 +30,7 @@ export default function ForgotPasswordPage() {
       email.trim(),
       {
         redirectTo: `${origin}/auth/callback?next=${next}`,
+        ...buildAuthCaptchaOptions(captchaToken),
       }
     );
 
@@ -76,6 +85,9 @@ export default function ForgotPasswordPage() {
                 placeholder="you@example.com"
               />
             </div>
+            {turnstileKey ? (
+              <TurnstileGate siteKey={turnstileKey} onToken={setCaptchaToken} />
+            ) : null}
             {error && (
               <p className="text-sm text-[#F87171] bg-[#F87171]/10 px-3 py-2 rounded-lg">
                 {error}
@@ -83,7 +95,7 @@ export default function ForgotPasswordPage() {
             )}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!!turnstileKey && !captchaToken)}
               className="w-full py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Sending…" : "Send reset link"}

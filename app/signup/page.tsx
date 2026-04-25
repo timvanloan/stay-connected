@@ -3,18 +3,26 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { TurnstileGate } from "@/components/auth/TurnstileGate";
+import { buildAuthCaptchaOptions, turnstileSiteKey } from "@/lib/auth-captcha";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const turnstileKey = turnstileSiteKey();
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileKey && !captchaToken) {
+      setError("Please complete the verification below.");
+      return;
+    }
     setLoading(true);
 
     const supabase = createClient();
@@ -23,6 +31,7 @@ export default function SignUpPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/pair`,
+        ...buildAuthCaptchaOptions(captchaToken),
       },
     });
 
@@ -81,6 +90,9 @@ export default function SignUpPage() {
             />
             <p className="mt-1 text-xs text-[#6b6560]">At least 6 characters</p>
           </div>
+          {turnstileKey ? (
+            <TurnstileGate siteKey={turnstileKey} onToken={setCaptchaToken} />
+          ) : null}
           {error && (
             <p className="text-sm text-[#F87171] bg-[#F87171]/10 px-3 py-2 rounded-lg">
               {error}
@@ -88,7 +100,7 @@ export default function SignUpPage() {
           )}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (!!turnstileKey && !captchaToken)}
             className="w-full py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Creating account..." : "Sign Up"}

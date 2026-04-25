@@ -41,6 +41,20 @@ npx supabase db push
 
 Or run migrations manually in the Supabase SQL Editor (run **all** files in `supabase/migrations/` in chronological order, or paste each new migration when you pull updates).
 
+### Production checklist (Supabase)
+
+Full step-by-step (migration order, **Fear** hotfix, captcha troubleshooting, Vercel Postgres scope): **[supabase/PRODUCTION.md](supabase/PRODUCTION.md)**.
+
+Quick reference — ensure these have been applied on production:
+
+| Migration | Why it matters |
+|-----------|----------------|
+| `20260310000000_primary_feeling_fear.sql` | App uses **`Fear`**; without it, check-ins error on the `check_ins_primary_feeling_check` constraint. |
+| `20260330000000_check_ins_partner_appreciation.sql` | Adds `partner_appreciation` column used by the dashboard form. |
+| `20260331120000_security_partner_lock_and_rate_limit.sql` | Locks direct `profiles` updates; rate-limits pairing RPC. |
+
+If **Fear** still fails after deploy, run the SQL in `20260310000000_primary_feeling_fear.sql` in the SQL Editor and verify with the query in [supabase/PRODUCTION.md](supabase/PRODUCTION.md).
+
 ### Security (database)
 
 After applying `20260331120000_security_partner_lock_and_rate_limit.sql`:
@@ -59,6 +73,8 @@ In Supabase Dashboard → Authentication → URL Configuration:
 
 Password reset sends users through that callback to `/auth/update-password`; no extra redirect URL is required if the query stays on `/auth/callback`.
 
+If Supabase **Attack Protection** requires a captcha, set **`NEXT_PUBLIC_TURNSTILE_SITE_KEY`** (see `.env.local.example`) and add the matching **secret** in the Supabase dashboard. See **[supabase/PRODUCTION.md](supabase/PRODUCTION.md)** (Sign-in or captcha issues) for the full checklist.
+
 ### 5. Run the app
 
 ```bash
@@ -71,5 +87,5 @@ npm run dev
 - **Profile:** Auto-created on signup with a unique 6-digit invite code
 - **Pairing:** Share your code and enter your partner's to link accounts
 - **Protected routes:** `/dashboard` and `/pair` require authentication
-- **Pulse Wheel:** Interactive emotion selector (Happy, Sad, Angry, Afraid + sub-feelings)
+- **Pulse wheel:** Interactive emotion selector (Happy, Sad, Angry, Fear + sub-feelings)
 - **Check-ins:** Log how you feel each day; see your partner's check-in when paired

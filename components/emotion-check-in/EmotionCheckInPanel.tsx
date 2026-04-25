@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FEELING_COLORS,
@@ -220,6 +220,27 @@ export function EmotionCheckInPanel({
                 const isSelected = selectedSecondary === label;
                 const isGratefulGold =
                   isSelected && label === "Grateful" && activePrimary === "Happy";
+                const primaryHex = FEELING_COLORS[activePrimary];
+
+                const selectedStyle: CSSProperties | undefined = isSelected
+                  ? isGratefulGold
+                    ? {
+                        color: "#3d3420",
+                        backgroundColor: "rgba(255, 251, 235, 0.95)",
+                        border: "2px solid rgb(217 119 6)",
+                        boxShadow:
+                          "0 0 0 1px rgba(245, 158, 11, 0.9), 0 0 14px rgba(251, 191, 36, 0.55), 0 0 28px rgba(245, 158, 11, 0.35)",
+                        transform: "translateY(-1px)",
+                      }
+                    : {
+                        color: "#2d2a26",
+                        backgroundColor: `${primaryHex}26`,
+                        border: `2px solid ${primaryHex}`,
+                        boxShadow: `0 0 0 1px ${primaryHex}, 0 0 12px ${primaryHex}55, 0 0 26px ${primaryHex}40`,
+                        transform: "translateY(-1px)",
+                      }
+                  : undefined;
+
                 return (
                   <button
                     key={label}
@@ -230,13 +251,12 @@ export function EmotionCheckInPanel({
                         isSelected ? undefined : label
                       )
                     }
+                    style={selectedStyle}
                     className={[
-                      "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium font-inter transition-all",
-                      isGratefulGold
-                        ? "border-amber-500/80 bg-amber-50/90 text-[#3d3420] ring-2 ring-amber-400/40"
-                        : isSelected
-                          ? "border-[#3d3420]/25 bg-white/90 text-[#2d2a26] shadow-sm"
-                          : "border-stone-200/80 bg-white/70 text-[#4a4540] hover:border-stone-300 hover:bg-white",
+                      "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium font-inter transition-all duration-200",
+                      isSelected
+                        ? "font-semibold"
+                        : "border-2 border-stone-200/80 bg-white/70 text-[#4a4540] hover:border-stone-300 hover:bg-white",
                     ].join(" ")}
                   >
                     <span className="text-base leading-none">
