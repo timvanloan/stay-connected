@@ -12,6 +12,8 @@ import {
   type PrimaryFeeling,
 } from "@/lib/constants/feelings";
 
+const NOTE_MAX_LENGTH = 1000;
+
 type ExistingCheckIn = {
   primary_feeling: string;
   secondary_feeling: string | null;
@@ -142,8 +144,12 @@ export function CheckInForm({
               onChange={(e) => setNote(e.target.value)}
               placeholder="Add a note for your partner..."
               rows={4}
+              maxLength={NOTE_MAX_LENGTH}
               className="font-inter w-full rounded-[1.25rem] border border-stone-200/80 bg-[#FDFBF7]/80 px-4 py-3.5 text-[#2d2a26] placeholder:text-stone-400 focus:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-200/40 resize-none shadow-inner"
             />
+            <p className="mt-1 text-right text-xs text-stone-400">
+              {note.length}/{NOTE_MAX_LENGTH}
+            </p>
           </div>
           <div>
             <label
@@ -159,8 +165,12 @@ export function CheckInForm({
               onChange={(e) => setPartnerAppreciation(e.target.value)}
               placeholder="Share something you love about them..."
               rows={4}
+              maxLength={NOTE_MAX_LENGTH}
               className="font-inter w-full rounded-[1.25rem] border border-stone-200/80 bg-[#FDFBF7]/80 px-4 py-3.5 text-[#2d2a26] placeholder:text-stone-400 focus:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-200/40 resize-none shadow-inner"
             />
+            <p className="mt-1 text-right text-xs text-stone-400">
+              {partnerAppreciation.length}/{NOTE_MAX_LENGTH}
+            </p>
           </div>
         </div>
       </motion.div>

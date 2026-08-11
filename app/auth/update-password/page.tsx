@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-const MIN_LENGTH = 6;
+const MIN_LENGTH = 8;
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");

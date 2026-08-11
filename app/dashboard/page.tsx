@@ -28,7 +28,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("partner_id")
+    .select("partner_id, deletion_requested_at")
     .eq("id", user.id)
     .single();
 
@@ -79,12 +79,28 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen p-6">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-serif text-[#2d2a26] mb-2">Dashboard</h1>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h1 className="text-3xl font-serif text-[#2d2a26]">Dashboard</h1>
+          <a
+            href="/settings"
+            className="mt-2 text-sm text-[#A78BFA] hover:underline whitespace-nowrap"
+          >
+            Settings
+          </a>
+        </div>
         <p className="text-[#6b6560] mb-8">
           {profile?.partner_id
             ? "You're connected with your partner."
             : "Complete pairing to see your partner's status."}
         </p>
+        {profile?.deletion_requested_at && (
+          <div className="mb-8 rounded-xl border border-[#F87171]/40 bg-[#F87171]/10 px-4 py-3 text-sm text-[#8a3a3a]">
+            Your account is scheduled for deletion.{" "}
+            <a href="/settings" className="underline font-medium">
+              Manage in Settings
+            </a>
+          </div>
+        )}
         <DashboardContent
           ownCheckIn={ownCheckIn}
           partnerCheckIn={partnerCheckIn}

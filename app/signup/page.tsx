@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,10 @@ export default function SignUpPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!agreed) {
+      setError("Please agree to the Terms and Privacy Policy to continue.");
+      return;
+    }
     if (turnstileKey && !captchaToken) {
       setError("Please complete the verification below.");
       return;
@@ -84,12 +89,31 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
               placeholder="••••••••"
             />
-            <p className="mt-1 text-xs text-[#6b6560]">At least 6 characters</p>
+            <p className="mt-1 text-xs text-[#6b6560]">At least 8 characters</p>
           </div>
+          <label className="flex items-start gap-2 text-sm text-[#6b6560]">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              I agree to the{" "}
+              <Link href="/terms" className="text-[#A78BFA] hover:underline" target="_blank">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-[#A78BFA] hover:underline" target="_blank">
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
           {turnstileKey ? (
             <TurnstileGate siteKey={turnstileKey} onToken={setCaptchaToken} />
           ) : null}
@@ -100,7 +124,7 @@ export default function SignUpPage() {
           )}
           <button
             type="submit"
-            disabled={loading || (!!turnstileKey && !captchaToken)}
+            disabled={loading || !agreed || (!!turnstileKey && !captchaToken)}
             className="w-full py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Creating account..." : "Sign Up"}

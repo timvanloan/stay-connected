@@ -24,6 +24,14 @@ export default function HomePage() {
           Sign Up
         </Link>
       </div>
+      <div className="mt-12 flex gap-4 text-xs text-[#6b6560]">
+        <Link href="/privacy" className="hover:underline">
+          Privacy Policy
+        </Link>
+        <Link href="/terms" className="hover:underline">
+          Terms of Service
+        </Link>
+      </div>
     </main>
   );
 }
