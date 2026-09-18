@@ -32,22 +32,12 @@ sudo chmod 666 /var/run/docker.sock 2>/dev/null || true
 # 2. Supabase local stack (Postgres, Auth, PostgREST, Studio, Mailpit)
 # ---------------------------------------------------------------------------
 # `supabase status` exits non-zero when the stack is down; only start it then.
-# On first boot this applies every timestamped migration in supabase/migrations.
+# On first boot this applies every timestamped migration in supabase/migrations
+# (including 20260918000000_fix_profiles_rls_recursion.sql, which repairs the
+# signup trigger and the recursive profiles/check_ins RLS policies).
 if ! npx --yes supabase status >/dev/null 2>&1; then
   echo "[start] Starting Supabase local stack..."
   npx --yes supabase start
-fi
-
-# ---------------------------------------------------------------------------
-# 3. Documented signup-trigger repair
-# ---------------------------------------------------------------------------
-# The Supabase CLI only applies files named <timestamp>_name.sql, so it skips
-# the repo's fix_signup_trigger.sql. Without it, the auth.users insert trigger
-# aborts signup on a clean database. CREATE OR REPLACE makes this idempotent.
-if [ -f supabase/migrations/fix_signup_trigger.sql ]; then
-  echo "[start] Applying fix_signup_trigger.sql..."
-  docker exec -i supabase_db_workspace psql -U postgres \
-    < supabase/migrations/fix_signup_trigger.sql >/dev/null 2>&1 || true
 fi
 
 echo "[start] Environment ready. Supabase API: http://127.0.0.1:54321  Studio: http://127.0.0.1:54323"
