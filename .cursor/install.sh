@@ -18,7 +18,12 @@ cd "$(dirname "$0")/.."
 if ! command -v dockerd >/dev/null 2>&1; then
   echo "[install] Installing Docker engine..."
   sudo apt-get update -y
+  # DEBIAN_FRONTEND=noninteractive does NOT suppress dpkg's own conffile
+  # prompts (e.g. fuse3's /etc/fuse.conf), which otherwise hang the boot-time
+  # install forever. --force-confold/--force-confdef answer them automatically.
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    -o Dpkg::Options::=--force-confold \
+    -o Dpkg::Options::=--force-confdef \
     docker.io fuse-overlayfs uidmap
 fi
 sudo update-alternatives --set iptables /usr/sbin/iptables-legacy >/dev/null 2>&1 || true
