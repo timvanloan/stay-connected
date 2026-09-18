@@ -1,24 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BillingSettings } from "@/components/BillingSettings";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/constants/support";
+import {
+  friendLabel,
+  type MyNetwork,
+  type NetworkFriend,
+} from "@/lib/constants/network";
 import { createClient } from "@/lib/supabase/client";
 
 const GRACE_PERIOD_DAYS = 14;
 
 export default function SettingsPage() {
   const [email, setEmail] = useState<string | null>(null);
-  const [hasPartner, setHasPartner] = useState(false);
+  const [friends, setFriends] = useState<NetworkFriend[]>([]);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
+    null
+  );
   const [deletionRequestedAt, setDeletionRequestedAt] = useState<
     string | null
   >(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [confirmingUnpair, setConfirmingUnpair] = useState(false);
+  const [removingFriendId, setRemovingFriendId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  async function loadNetwork() {
+    const supabase = createClient();
+    const { data } = await supabase.rpc("get_my_network");
+    const network = data as MyNetwork | null;
+    if (network?.success) {
+      setFriends(network.friends ?? []);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -36,22 +55,25 @@ export default function SettingsPage() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("deletion_requested_at, partner_id")
+        .select("deletion_requested_at, subscription_status")
         .eq("id", user.id)
         .single();
 
       setDeletionRequestedAt(profile?.deletion_requested_at ?? null);
-      setHasPartner(!!profile?.partner_id);
+      setSubscriptionStatus(profile?.subscription_status ?? null);
+      await loadNetwork();
       setLoading(false);
     }
     load();
   }, [router]);
 
-  async function handleUnpair() {
+  async function handleRemoveFriend(friendId: string) {
     setError(null);
     setActionLoading(true);
     const supabase = createClient();
-    const { data, error: rpcError } = await supabase.rpc("unpair_partner");
+    const { data, error: rpcError } = await supabase.rpc("remove_friend", {
+      friend_id: friendId,
+    });
     setActionLoading(false);
 
     const result = data as
@@ -61,8 +83,8 @@ export default function SettingsPage() {
       setError(rpcError?.message ?? result?.error ?? "Something went wrong.");
       return;
     }
-    setConfirmingUnpair(false);
-    router.push("/pair");
+    setRemovingFriendId(null);
+    await loadNetwork();
     router.refresh();
   }
 
@@ -137,54 +159,72 @@ export default function SettingsPage() {
           </p>
         )}
 
-        {hasPartner && (
-          <div className="rounded-xl border border-[#e5e2de] bg-white p-5 mb-6">
-            <h2 className="font-medium text-[#2d2a26] mb-2">
-              Disconnect from partner
-            </h2>
-            {confirmingUnpair ? (
-              <div className="space-y-3">
-                <p className="text-sm text-[#6b6560]">
-                  This unpairs you from your partner and issues you a new
-                  invite code — your old code will stop working. Your past
-                  check-ins aren&apos;t deleted.
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmingUnpair(false)}
-                    className="flex-1 py-3 rounded-xl border border-[#e5e2de] bg-white hover:bg-[#f5f3f0] transition-colors"
-                  >
-                    Stay connected
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleUnpair}
-                    disabled={actionLoading}
-                    className="flex-1 py-3 rounded-xl bg-[#2d2a26] text-white font-medium hover:bg-[#3d3a36] transition-colors disabled:opacity-60"
-                  >
-                    {actionLoading ? "Disconnecting..." : "Confirm"}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-[#6b6560]">
-                  Remove your partner link and get a fresh invite code.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setConfirmingUnpair(true)}
-                  className="w-full py-3 rounded-xl border border-[#e5e2de] bg-white hover:bg-[#f5f3f0] transition-colors"
-                >
-                  Disconnect
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <BillingSettings subscriptionStatus={subscriptionStatus} />
+        </Suspense>
 
-        <div className="rounded-xl border border-[#e5e2de] bg-white p-5">
+        <div className="rounded-xl border border-[#e5e2de] bg-white p-5 mb-6">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <h2 className="font-medium text-[#2d2a26]">Friends</h2>
+            <Link href="/pair" className="text-sm text-[#A78BFA] hover:underline">
+              Manage
+            </Link>
+          </div>
+          {friends.length === 0 ? (
+            <p className="text-sm text-[#6b6560]">
+              No connections yet.{" "}
+              <Link href="/pair" className="text-[#A78BFA] hover:underline">
+                Add a friend
+              </Link>
+              .
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {friends.map((f) => (
+                <li key={f.id} className="space-y-2">
+                  {removingFriendId === f.id ? (
+                    <div className="space-y-2">
+                      <p className="text-sm text-[#6b6560]">
+                        Disconnect from {friendLabel(f)}? Your invite code will
+                        refresh. Past check-ins are kept.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRemovingFriendId(null)}
+                          className="flex-1 py-2 rounded-xl border border-[#e5e2de] bg-white hover:bg-[#f5f3f0] text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFriend(f.id)}
+                          disabled={actionLoading}
+                          className="flex-1 py-2 rounded-xl bg-[#2d2a26] text-white text-sm font-medium disabled:opacity-60"
+                        >
+                          {actionLoading ? "Removing…" : "Confirm"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[#2d2a26]">{friendLabel(f)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setRemovingFriendId(f.id)}
+                        className="text-sm text-[#F87171] hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-[#e5e2de] bg-white p-5 mb-6">
           <h2 className="font-medium text-[#2d2a26] mb-2">Delete account</h2>
 
           {deletionRequestedAt ? (
@@ -213,9 +253,10 @@ export default function SettingsPage() {
           ) : confirmingDelete ? (
             <div className="space-y-3">
               <p className="text-sm text-[#6b6560]">
-                This deletes your profile, check-ins, and pairing after a
+                This deletes your profile, check-ins, and connections after a
                 14-day grace period. You can cancel anytime before then from
-                this page.
+                this page. Cancel any Stripe subscription from Manage billing
+                first if you are subscribed.
               </p>
               <div className="flex gap-2">
                 <button
@@ -250,6 +291,13 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
+
+        <p className="text-sm text-[#6b6560]">
+          Support:{" "}
+          <a href={SUPPORT_MAILTO} className="text-[#A78BFA] hover:underline">
+            {SUPPORT_EMAIL}
+          </a>
+        </p>
       </div>
     </main>
   );

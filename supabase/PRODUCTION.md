@@ -11,7 +11,7 @@ own testing.
 - [ ] **Authentication → Attack Protection → Bot and Abuse Protection**: Turnstile enabled, secret key pasted in and matches the Cloudflare site whose **site key** is your `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
 - [ ] **Authentication → Attack Protection → Leaked Password Protection**: turned on (rejects known-breached passwords at signup/reset).
 - [ ] **Authentication → Providers → Email → Confirm email**: turned on, so unverified addresses can't create working accounts. Confirm the signup flow in `app/signup/page.tsx` still behaves — Supabase will hold the session until confirmed when this is on.
-- [ ] **Authentication → Providers → Email → Minimum password length**: raise from the default 6 to at least 8, and update `minLength`/copy in `app/signup/page.tsx:87` and `app/auth/update-password/page.tsx:8` to match.
+- [ ] **Authentication → Providers → Email → Minimum password length**: raise from the default 6 to at least 8, matching `MIN_PASSWORD_LENGTH` in [`lib/constants/auth.ts`](../lib/constants/auth.ts) (used by signup and update-password).
 - [ ] **Authentication → URL Configuration**: **Site URL** set to your real production domain; **Redirect URLs** includes that domain's `/auth/callback` (plus `http://localhost:3000/auth/callback` for local dev only — remove any stray preview-deployment wildcards before launch).
 - [ ] **Authentication → Rate Limits**: review the defaults for sign-in/sign-up/OTP against expected traffic; the app has no additional layer beyond Supabase's own limits + Turnstile + the `accept_invite` rate limit in [`20260331120000_security_partner_lock_and_rate_limit.sql`](./migrations/20260331120000_security_partner_lock_and_rate_limit.sql).
 - [ ] **Database → Backups**: confirm point-in-time recovery or daily backups are enabled on the plan you're using — this is real user data now, not a personal sandbox.
@@ -33,6 +33,8 @@ Apply every migration you have **not** yet run, in **filename timestamp order** 
 | `20260811000000_check_ins_note_length.sql` | Caps `note` / `partner_appreciation` at 1000 chars |
 | `20260811000100_account_deletion.sql` | `deletion_requested_at` + `request_account_deletion` / `cancel_account_deletion` RPCs |
 | `20260811000200_unpair_partner.sql` | `unpair_partner` RPC — disconnects both profiles, regenerates the caller's invite code |
+| `20260918000000_billing_stripe.sql` | Stripe customer / subscription fields on `profiles` for paid launch |
+| `20260918120000_multi_friend_network.sql` | Friendships graph (max 10), display names, multi-friend invite/remove, mode-aware RLS |
 
 **CLI:** `npx supabase link --project-ref <ref>` then `npx supabase db push`  
 **Manual:** Supabase Dashboard → SQL Editor → paste each file’s contents and run.
@@ -101,7 +103,31 @@ schedule already in `vercel.json` (`0 3 * * *`).
 
 ---
 
+## Paid launch gate (before taking payment)
+
+Complete the pre-launch checklist above **and**:
+
+- [ ] **Supabase plan with backups / PITR** enabled (Database → Backups). Do not
+      charge customers on a free tier with no recovery story.
+- [ ] **Minimum password length ≥ 8** in Supabase Auth (matches
+      `lib/constants/auth.ts` → `MIN_PASSWORD_LENGTH`).
+- [ ] **Stripe** env vars set in Vercel (see `.env.local.example`); webhook
+      endpoint `https://your-domain.com/api/stripe/webhook` registered for
+      `checkout.session.completed`, `customer.subscription.*`,
+      `invoice.payment_failed`.
+- [ ] Migration `20260918000000_billing_stripe.sql` applied (billing columns on
+      `profiles`).
+- [ ] Privacy / Terms dates and Stripe language reviewed on `/privacy` and
+      `/terms`; support email matches `lib/constants/support.ts`.
+
+Infrastructure decision (stay on Supabase; when to revisit Neon):  
+**[docs/INFRASTRUCTURE.md](../docs/INFRASTRUCTURE.md)**.
+
 ## Future: “Move DB” to Vercel Postgres (spike / scope)
+
+**Decision for launch:** stay on Supabase. See
+[`docs/INFRASTRUCTURE.md`](../docs/INFRASTRUCTURE.md) for tradeoffs and revisit
+triggers.
 
 **Vercel Postgres** (often Neon) is **only PostgreSQL**. It does **not** replace:
 
@@ -117,4 +143,5 @@ A real migration is a **replatform**, not a `pg_dump` only:
 4. Replace **pairing** (`accept_invite`) with server logic or RPC on Neon.  
 5. **Export** data (`pg_dump` / CSV), **import**, then cut traffic and decommission Supabase.
 
-Treat this as a **separate project** from schema hotfixes above; estimate days–weeks for parity.
+Treat this as a **separate project** from schema hotfixes and paid launch work
+above; estimate days–weeks for parity.

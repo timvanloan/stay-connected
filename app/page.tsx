@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PLAN_PRICE_LABEL } from "@/lib/constants/billing";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/constants/support";
 
 export default function HomePage() {
   return (
@@ -7,8 +9,8 @@ export default function HomePage() {
         Stay Connected
       </h1>
       <p className="text-lg text-[#6b6560] mb-12 max-w-md text-center">
-        A private space for couples to share how you feel and stay emotionally
-        close.
+        A private space to share how you feel with a partner or a small circle
+        of friends.
       </p>
       <div className="flex flex-col sm:flex-row gap-4">
         <Link
@@ -24,13 +26,21 @@ export default function HomePage() {
           Sign Up
         </Link>
       </div>
-      <div className="mt-12 flex gap-4 text-xs text-[#6b6560]">
+      <p className="mt-8 text-sm text-[#6b6560]">
+        <Link href="/pricing" className="text-[#A78BFA] hover:underline">
+          Pricing — {PLAN_PRICE_LABEL}
+        </Link>
+      </p>
+      <div className="mt-12 flex flex-wrap justify-center gap-4 text-xs text-[#6b6560]">
         <Link href="/privacy" className="hover:underline">
           Privacy Policy
         </Link>
         <Link href="/terms" className="hover:underline">
           Terms of Service
         </Link>
+        <a href={SUPPORT_MAILTO} className="hover:underline">
+          Support ({SUPPORT_EMAIL})
+        </a>
       </div>
     </main>
   );
