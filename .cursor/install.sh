@@ -59,6 +59,22 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
 # Bearer token the purge cron expects locally.
 CRON_SECRET=local-dev-cron-secret
+
+# App URL used for Stripe redirect URLs.
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Stripe billing is OPTIONAL for local dev. Leave blank to disable billing:
+# getStripe() is lazy (only the /api/stripe/* routes need these), the billing
+# UI hides itself without a publishable key, and the dashboard is only gated
+# when REQUIRE_SUBSCRIPTION="true". To exercise Stripe locally, fill these in.
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_PRICE_ID=
+STRIPE_WEBHOOK_SECRET=
+
+# Leave blank/false locally so the full app (incl. the friend network) is
+# usable without a subscription. Set to "true" to require an active plan.
+REQUIRE_SUBSCRIPTION=
 EOF
 fi
 
