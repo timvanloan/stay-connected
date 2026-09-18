@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TurnstileGate } from "@/components/auth/TurnstileGate";
 import { buildAuthCaptchaOptions, turnstileSiteKey } from "@/lib/auth-captcha";
+import { MIN_PASSWORD_LENGTH } from "@/lib/constants/auth";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
@@ -22,6 +23,12 @@ export default function SignUpPage() {
     setError(null);
     if (!agreed) {
       setError("Please agree to the Terms and Privacy Policy to continue.");
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+      );
       return;
     }
     if (turnstileKey && !captchaToken) {
@@ -89,11 +96,13 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={8}
+              minLength={MIN_PASSWORD_LENGTH}
               className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
               placeholder="••••••••"
             />
-            <p className="mt-1 text-xs text-[#6b6560]">At least 8 characters</p>
+            <p className="mt-1 text-xs text-[#6b6560]">
+              At least {MIN_PASSWORD_LENGTH} characters
+            </p>
           </div>
           <label className="flex items-start gap-2 text-sm text-[#6b6560]">
             <input

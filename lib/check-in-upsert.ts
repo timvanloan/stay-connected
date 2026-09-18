@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLocalCalendarDate } from "@/lib/calendar-date";
+import type { AppreciationTargetType } from "@/lib/constants/network";
 import type { PrimaryFeeling } from "@/lib/constants/feelings";
 
 type UpsertArgs = {
@@ -8,6 +9,8 @@ type UpsertArgs = {
   secondary: string | null;
   note: string | null;
   partnerAppreciation: string | null;
+  appreciationTargetType?: AppreciationTargetType | null;
+  appreciationTargetId?: string | null;
 };
 
 /** PostgREST / Postgres errors sometimes split text across `message`, `details`, `hint`. */
@@ -46,7 +49,17 @@ export async function upsertTodayCheckIn(
   supabase: SupabaseClient,
   args: UpsertArgs
 ): Promise<{ error: { message: string } | null }> {
-  const { userId, primary, secondary, note, partnerAppreciation } = args;
+  const {
+    userId,
+    primary,
+    secondary,
+    note,
+    partnerAppreciation,
+    appreciationTargetType = null,
+    appreciationTargetId = null,
+  } = args;
+
+  const appreciation = (partnerAppreciation ?? "").trim() || null;
 
   const row = (primaryFeeling: string) => ({
     user_id: userId,
@@ -54,7 +67,14 @@ export async function upsertTodayCheckIn(
     primary_feeling: primaryFeeling,
     secondary_feeling: secondary,
     note: (note ?? "").trim() || null,
-    partner_appreciation: (partnerAppreciation ?? "").trim() || null,
+    partner_appreciation: appreciation,
+    appreciation_target_type: appreciation
+      ? appreciationTargetType
+      : null,
+    appreciation_target_id:
+      appreciation && appreciationTargetType === "person"
+        ? appreciationTargetId
+        : null,
     updated_at: new Date().toISOString(),
   });
 

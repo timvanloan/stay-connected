@@ -1,13 +1,15 @@
 # Stay Connected
 
-A private app for couples to stay emotionally connected.
+A private app for couples and small friend circles to stay emotionally connected.
 
 ## Tech Stack
 
 - **Framework:** Next.js 15 (App Router)
 - **Language:** TypeScript
 - **UI:** Tailwind CSS, Shadcn UI, Framer Motion
-- **Backend/Auth:** Supabase
+- **Backend/Auth:** Supabase (stay for launch — see [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md))
+- **Payments:** Stripe
+- **Hosting:** Vercel
 
 ## Setup
 
@@ -43,7 +45,11 @@ Or run migrations manually in the Supabase SQL Editor (run **all** files in `sup
 
 ### Production checklist (Supabase)
 
-Full step-by-step (migration order, **Fear** hotfix, captcha troubleshooting, Vercel Postgres scope): **[supabase/PRODUCTION.md](supabase/PRODUCTION.md)**.
+Full step-by-step (migration order, **Fear** hotfix, captcha troubleshooting,
+paid launch gate, Vercel Postgres scope): **[supabase/PRODUCTION.md](supabase/PRODUCTION.md)**.
+
+**Infrastructure decision (stay on Supabase for paid launch):**  
+**[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)**.
 
 Quick reference — ensure these have been applied on production:
 
@@ -84,8 +90,30 @@ npm run dev
 ## Features
 
 - **Auth:** Sign up and log in with email/password; forgot-password flow to reset via email
-- **Profile:** Auto-created on signup with a unique 6-digit invite code
-- **Pairing:** Share your code and enter your partner's to link accounts
-- **Protected routes:** `/dashboard` and `/pair` require authentication
+- **Profile:** Auto-created on signup with a unique 6-digit invite code and optional display name
+- **Friends:** Connect with up to 10 people in a group; couples mode (2) keeps partner prompts; group mode (3+) lets you appreciate a person or the whole group
+- **Check-in first:** Submit today's check-in before seeing friends' pulses (direct friends only)
+- **Protected routes:** `/dashboard`, `/pair`, and `/settings` require authentication
+- **Billing:** Stripe subscription checkout + customer portal (`/pricing`, Settings)
 - **Pulse wheel:** Interactive emotion selector (Happy, Sad, Angry, Fear + sub-feelings)
-- **Check-ins:** Log how you feel each day; see your partner's check-in when paired
+- **Check-ins:** Log how you feel each day; see friends' check-ins when unlocked
+
+### Stripe (paid launch)
+
+1. Create a Product + recurring Price in the Stripe Dashboard; copy the `price_…` id.
+2. Set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`,
+   `STRIPE_WEBHOOK_SECRET`, and `NEXT_PUBLIC_APP_URL` (see `.env.local.example`).
+3. Apply migration `20260918000000_billing_stripe.sql`.
+4. Point a Stripe webhook at `/api/stripe/webhook` for:
+   `checkout.session.completed`, `customer.subscription.created`,
+   `customer.subscription.updated`, `customer.subscription.deleted`,
+   `invoice.payment_failed`.
+5. Optional: set `REQUIRE_SUBSCRIPTION=true` to send unsigned-up-for-plan users
+   from `/dashboard` to `/pricing`.
+
+- [ ] Migration `20260918120000_multi_friend_network.sql` applied (friendships,
+      display names, multi-friend invite/remove). Existing `partner_id` pairs
+      are backfilled into `friendships` automatically.
+
+Before charging real customers, complete the **Paid launch gate** in
+[supabase/PRODUCTION.md](supabase/PRODUCTION.md) (especially Supabase backups).

@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { MIN_PASSWORD_LENGTH } from "@/lib/constants/auth";
 import { createClient } from "@/lib/supabase/client";
-
-const MIN_LENGTH = 8;
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
@@ -37,8 +36,10 @@ export default function UpdatePasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (password.length < MIN_LENGTH) {
-      setError(`Password must be at least ${MIN_LENGTH} characters.`);
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+      );
       return;
     }
     if (password !== confirm) {
@@ -120,11 +121,14 @@ export default function UpdatePasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={MIN_LENGTH}
+              minLength={MIN_PASSWORD_LENGTH}
               autoComplete="new-password"
               className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
               placeholder="••••••••"
             />
+            <p className="mt-1 text-xs text-[#6b6560]">
+              At least {MIN_PASSWORD_LENGTH} characters
+            </p>
           </div>
           <div>
             <label
@@ -139,7 +143,7 @@ export default function UpdatePasswordPage() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
-              minLength={MIN_LENGTH}
+              minLength={MIN_PASSWORD_LENGTH}
               autoComplete="new-password"
               className="w-full px-4 py-3 rounded-xl border border-[#e5e2de] bg-white focus:outline-none focus:ring-2 focus:ring-[#A78BFA]/30 focus:border-[#A78BFA]"
               placeholder="••••••••"

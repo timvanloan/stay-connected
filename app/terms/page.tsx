@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PLAN_PRICE_LABEL } from "@/lib/constants/billing";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/constants/support";
 
 export const metadata = {
   title: "Terms of Service — Stay Connected",
@@ -15,7 +17,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="text-sm text-[#6b6560] mb-8">
-          Last updated: August 11, 2026
+          Last updated: September 18, 2026
         </p>
 
         <div className="space-y-8 text-[#2d2a26] leading-relaxed">
@@ -26,11 +28,13 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-serif mb-2">The service</h2>
             <p className="text-[#4a453f]">
-              Stay Connected lets two paired partners share daily emotional
-              check-ins with each other. It is not a substitute for
+              Stay Connected lets you share daily emotional check-ins with a
+              partner or a small circle of friends (up to 10 people in a
+              connected group). Direct friends see each other&apos;s check-ins
+              after checking in themselves. It is not a substitute for
               professional therapy, counseling, or medical or mental-health
-              advice. If you or your partner are in crisis, please contact a
-              licensed professional or emergency services.
+              advice. If you or someone you care about are in crisis, please
+              contact a licensed professional or emergency services.
             </p>
           </section>
 
@@ -46,10 +50,29 @@ export default function TermsPage() {
             <h2 className="text-lg font-serif mb-2">Your account</h2>
             <p className="text-[#4a453f]">
               You&apos;re responsible for keeping your login credentials
-              secure and for everything that happens under your account. One
-              invite code pairs with exactly one partner at a time — don&apos;t
-              share your invite code with anyone you don&apos;t want to see
-              your check-ins.
+              secure and for everything that happens under your account.
+              Don&apos;t share your invite code with anyone you don&apos;t
+              want to see your check-ins. Groups are capped at 10 people.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-serif mb-2">Subscriptions and billing</h2>
+            <p className="text-[#4a453f]">
+              Paid access is billed through Stripe at the then-current price
+              shown on the Pricing page (currently {PLAN_PRICE_LABEL} unless
+              otherwise stated). Fees are charged in advance for each billing
+              period. You can cancel in Settings → Manage billing; access
+              continues through the end of the period you already paid for
+              unless otherwise stated at checkout. Taxes may apply. Refunds
+              are handled case-by-case — email{" "}
+              <a
+                href={SUPPORT_MAILTO}
+                className="text-[#A78BFA] hover:underline"
+              >
+                {SUPPORT_EMAIL}
+              </a>
+              .
             </p>
           </section>
 
@@ -67,8 +90,9 @@ export default function TermsPage() {
             <h2 className="text-lg font-serif mb-2">Content</h2>
             <p className="text-[#4a453f]">
               You retain ownership of what you write. By submitting a
-              check-in, you grant your paired partner the ability to view it.
-              We may remove content that violates these terms.
+              check-in, you grant your direct friends the ability to view it
+              (subject to the product&apos;s check-in-first unlock). We may
+              remove content that violates these terms.
             </p>
           </section>
 
@@ -112,10 +136,10 @@ export default function TermsPage() {
             <h2 className="text-lg font-serif mb-2">Contact</h2>
             <p className="text-[#4a453f]">
               <a
-                href="mailto:nursing_above.3q@icloud.com"
+                href={SUPPORT_MAILTO}
                 className="text-[#A78BFA] hover:underline"
               >
-                nursing_above.3q@icloud.com
+                {SUPPORT_EMAIL}
               </a>
             </p>
           </section>
