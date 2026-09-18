@@ -40,4 +40,15 @@ if ! npx --yes supabase status >/dev/null 2>&1; then
   npx --yes supabase start
 fi
 
-echo "[start] Environment ready. Supabase API: http://127.0.0.1:54321  Studio: http://127.0.0.1:54323"
+# ---------------------------------------------------------------------------
+# 3. Next.js dev server
+# ---------------------------------------------------------------------------
+# Launched here (backgrounded) rather than as a `terminals` entry so the
+# environment is fully functional from `start` alone. Idempotent: only starts
+# if nothing is already listening on port 3000.
+if ! curl -s -o /dev/null --max-time 2 http://localhost:3000/ 2>/dev/null; then
+  echo "[start] Starting Next.js dev server on http://localhost:3000 ..."
+  nohup npm run dev >/tmp/next-dev.log 2>&1 &
+fi
+
+echo "[start] Environment ready. App: http://localhost:3000  Supabase API: http://127.0.0.1:54321  Studio: http://127.0.0.1:54323"
