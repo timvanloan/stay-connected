@@ -1,18 +1,43 @@
 #!/usr/bin/env bash
 #
 # Idempotent repository bootstrap for the Cloud Agent environment.
-# Runs after the source checkout. Keep it terminating and side-effect free
-# beyond installing JS deps and writing the local dev env file — the Docker /
-# Supabase runtime is brought up by .cursor/start.sh on every boot.
+# Runs after the source checkout (and whenever dependencies are refreshed).
+# Installs the Docker engine (needed for the local Supabase stack), installs JS
+# dependencies, and writes the local dev env file. Must terminate; the Docker
+# daemon and Supabase/Next.js services are started by .cursor/start.sh.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# ---------------------------------------------------------------------------
+# 1. Docker engine (nested-container friendly)
+# ---------------------------------------------------------------------------
+# The default Cloud Agent base image has no Docker, so install it here. Cloud
+# Agent VMs run inside a container, so Docker needs the fuse-overlayfs storage
+# driver and legacy iptables for container networking. Package install +
+# system config live here (once per pod); the daemon is started in start.sh.
+if ! command -v dockerd >/dev/null 2>&1; then
+  echo "[install] Installing Docker engine..."
+  sudo apt-get update -y
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    docker.io fuse-overlayfs uidmap
+fi
+sudo update-alternatives --set iptables /usr/sbin/iptables-legacy >/dev/null 2>&1 || true
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy >/dev/null 2>&1 || true
+sudo mkdir -p /etc/docker
+echo '{"storage-driver":"fuse-overlayfs"}' | sudo tee /etc/docker/daemon.json >/dev/null
+sudo usermod -aG docker "$USER" >/dev/null 2>&1 || true
+
+# ---------------------------------------------------------------------------
+# 2. JS dependencies
+# ---------------------------------------------------------------------------
 echo "[install] Installing JS dependencies (npm ci)..."
 npm ci
 
+# ---------------------------------------------------------------------------
+# 3. Local dev env file
+# ---------------------------------------------------------------------------
 # The local Supabase stack uses fixed, well-known demo credentials (see
-# `npx supabase status`). These are safe for local development only — never
-# production. Generate .env.local if a developer has not supplied their own.
+# `npx supabase status`). Safe for local development only — never production.
 if [ ! -f .env.local ]; then
   echo "[install] Writing .env.local for the local Supabase stack..."
   cat > .env.local <<'EOF'
